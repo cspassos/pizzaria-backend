@@ -2,7 +2,9 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  // Necessário para rodar no Vercel (Debian + OpenSSL 3.x) e também local
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -11,69 +13,73 @@ datasource db {
 }
 
 // criar uma migration: yarn prisma migrate dev
+
 model User {
-  id String @id @default(uuid())
-  name String
-  email String
-  password String
+  id         String    @id @default(uuid())
+  name       String
+  email      String
+  password   String
   created_at DateTime? @default(now())
   updated_at DateTime? @default(now())
 
   @@map("users")
 }
 
-model Category{
-  id String @id @default(uuid())
-  name String
-  created_at DateTime? @default(now())
-  updated_at DateTime? @default(now())
+model Category {
+  id         String     @id @default(uuid())
+  name       String
+  created_at DateTime?  @default(now())
+  updated_at DateTime?  @default(now())
+
+  products   Product[]
 
   @@map("categories")
-  products Product[]
 }
 
-model Product{
-  id String @id @default(uuid())
-  name String
-  price String
+model Product {
+  id          String     @id @default(uuid())
+  name        String
+  price       String
   description String
-  banner String
-  created_at DateTime? @default(now())
-  updated_at DateTime? @default(now())
+  banner      String
+  created_at  DateTime?  @default(now())
+  updated_at  DateTime?  @default(now())
 
-  category Category @relation(fields: [category_id], references: [id])
+  // FK
+  category_id String
+  category    Category   @relation(fields: [category_id], references: [id])
+
+  items       Item[]
 
   @@map("products")
-  category_id String
-  items Item[]
 }
 
-model Order{
-  id String @id @default(uuid())
-  table Int
-  status Boolean @default(false)
-  draft Boolean @default(true)
-  name String?
+model Order {
+  id         String     @id @default(uuid())
+  table      Int
+  status     Boolean    @default(false)
+  draft      Boolean    @default(true)
+  name       String?
+  created_at DateTime?  @default(now())
+  updated_at DateTime?  @default(now())
 
-  created_at DateTime? @default(now())
-  updated_at DateTime? @default(now())
+  items      Item[]
 
   @@map("orders")
-  items Item[]
 }
 
-model Item{
-  id String @id @default(uuid())
-  amount Int
+model Item {
+  id         String     @id @default(uuid())
+  amount     Int
+  created_at DateTime?  @default(now())
+  updated_at DateTime?  @default(now())
 
-  created_at DateTime? @default(now())
-  updated_at DateTime? @default(now())
-
-  order Order @relation(fields: [order_id], references: [id])
-  product Product @relation(fields: [product_id], references: [id])
-
-  @@map("items")
-  order_id String
+  // FKs
+  order_id   String
   product_id String
 
+  order      Order      @relation(fields: [order_id], references: [id])
+  product    Product    @relation(fields: [product_id], references: [id])
+
+  @@map("items")
 }
